@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoneGhost.Net</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230000FF' rx='4'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Arial' font-size='14' fill='%23FFD700'%3ELGN%3C/text%3E%3C/svg%3E">
+
+<meta name="description" content="LG.N">
+<meta property="og:title" content="LG.N">
+<meta property="og:description" content="LG.N">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="LG.N">
+<meta property="og:image" content="og-image.svg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="LG.N">
+<meta name="twitter:description" content="LG.N">
+<meta name="twitter:image" content="og-image.svg">
+<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+  body {
+    margin: 0;
+    padding: 20px;
+    background: #0a0a0a;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    color: #aaa;
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  #output {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .st {
+    color: #888;
+  }
+  .sitch {
+    color: #666;
+  }
+  .ts {
+    color: #444;
+  }
+  .banner {
+    color: #0f0;
+    margin-bottom: 16px;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+<div class="banner">Welcome to LoneGhost.Net</div>
+<div id="output"></div>
+
+<script>
+const out = document.getElementById('output');
+
+function log(text) {
+  const span = document.createElement('div');
+  span.innerHTML = text;
+  out.appendChild(span);
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+const colors = [
+  '#32CD32', '#FFD700', '#9370DB', '#00CED1', '#FF6B6B',
+  '#00FF7F', '#FF69B4', '#00BFFF', '#FF4500', '#7B68EE',
+];
+
+function randomColor() {
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+document.addEventListener('click', () => {
+  document.body.style.background = randomColor();
+  setTimeout(() => {
+    document.body.style.background = '#0a0a0a';
+  }, 100);
+});
+
+const alpha = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789'.split('');
+
+function genAns() {
+  let s = '';
+  for (let i = 0; i < 5 + Math.floor(Math.random() * 2); i++) {
+    s += alpha[Math.floor(Math.random() * alpha.length)];
+  }
+  return s;
+}
+
+function genLetters(n) {
+  let s = '';
+  const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for (let i = 0; i < n; i++) {
+    s += letters[Math.floor(Math.random() * letters.length)];
+  }
+  return s;
+}
+
+let diction = [];
+
+function generateResult() {
+  const d = new Date();
+  const ts = d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0') + ' ' +
+    String(d.getHours()).padStart(2, '0') + ':' +
+    String(d.getMinutes()).padStart(2, '0') + ':' +
+    String(d.getSeconds()).padStart(2, '0') + '.' +
+    String(d.getMilliseconds()).padStart(3, '0');
+  const ans = genAns();
+  const sitch = (Math.random() * 9999).toFixed(4);
+  const k = 1 + Math.floor(Math.random() * 9);
+  let words = [];
+  for (let i = 0; i < k; i++) {
+    words.push(diction[Math.floor(Math.random() * diction.length)]);
+  }
+  const kchat = words.join('  ');
+  const c = randomColor();
+  log(`<span class="st"> st</span> ${ans} <span class="sitch">${sitch}</span> <span style="color:${c}">${kchat}</span> <span class="ts">${ts}</span>`);
+}
+
+async function fetchDiction() {
+  try {
+    const resp = await fetch('diction.json');
+    diction = await resp.json();
+  } catch {
+    diction = [
+      "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta",
+      "iota", "kappa", "lambda", "mu", "nu", "xi", "omicron", "pi", "rho",
+      "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega",
+      "nebula", "cosmos", "quantum", "photon", "pulse", "wave", "drift",
+      "echo", "flux", "grid", "halo", "iris", "jade", "kite", "lens",
+      "mist", "node", "orbit", "prism", "ridge", "spire", "trace", "unity",
+      "veil", "void", "wisp", "zenith", "arc", "bloom", "cipher", "dune",
+      "ember", "frost", "glade", "haze", "inlet", "knoll", "lunar", "marsh",
+      "noir", "opal", "peak", "quartz", "raven", "shade", "thorn", "umbra",
+      "vale", "vale", "whorl", "xeno", "yield", "zephyr"
+    ];
+  }
+  loop();
+}
+
+function loop() {
+  const delay = Math.floor(Math.random() * 5000);
+  setTimeout(() => {
+    const int = Math.floor(Math.random() * 26);
+    if (int > 15 && Math.random() > 0.5) {
+      generateResult();
+    }
+    loop();
+  }, delay);
+}
+
+fetchDiction();
+</script>
+</body>
+</html>
