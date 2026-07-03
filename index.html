@@ -35,6 +35,7 @@
   #output {
     white-space: pre-wrap;
     word-wrap: break-word;
+    margin-top: 56px;
   }
   .st {
     color: #888;
@@ -46,9 +47,15 @@
     color: #444;
   }
   .banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 20px 12px;
+    background: #0a0a0a;
     color: #0f0;
-    margin-bottom: 16px;
     font-weight: bold;
+    z-index: 10;
   }
 </style>
 </head>
@@ -76,9 +83,12 @@ function randomColor() {
 }
 
 document.addEventListener('click', () => {
-  document.body.style.background = randomColor();
+  const c = randomColor();
+  document.body.style.background = c;
+  document.querySelector('.banner').style.background = c;
   setTimeout(() => {
     document.body.style.background = '#0a0a0a';
+    document.querySelector('.banner').style.background = '#0a0a0a';
   }, 100);
 });
 
