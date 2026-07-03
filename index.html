@@ -83,7 +83,7 @@ function randomColor() {
   return colors[Math.floor(Math.random() * colors.length)];
 }
 
-document.addEventListener('click', () => {
+function flash() {
   const c = randomColor();
   document.body.style.background = c;
   document.querySelector('.banner').style.background = c;
@@ -91,7 +91,10 @@ document.addEventListener('click', () => {
     document.body.style.background = '#0a0a0a';
     document.querySelector('.banner').style.background = '#0a0a0a';
   }, 100);
-});
+}
+
+document.addEventListener('click', flash);
+document.addEventListener('keydown', e => { if (e.key === 'Enter') flash(); });
 
 const alpha = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789'.split('');
 
