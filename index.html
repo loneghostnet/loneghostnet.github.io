@@ -404,7 +404,7 @@ document.addEventListener('keydown', e => {
 
 (function() {
   const s = document.createElement('script');
-  s.src = 'https://kredtidy.tumblr.com/api/read/json?num=30';
+  s.src = 'https://kredtidy.tumblr.com/api/read/json?num=50';
   s.onerror = () => { ssImg.style.display = 'none'; };
   document.head.appendChild(s);
   const iv = setInterval(() => {
@@ -415,8 +415,10 @@ document.addEventListener('keydown', e => {
       if (post['photo-url-1280']) return post['photo-url-1280'];
       if (post['photo-url-500']) return post['photo-url-500'];
       const body = post['regular-body'] || post['photo-caption'] || '';
-      const m = body.match(/<img[^>]+src=["']([^"']+)["']/);
-      return m ? m[1] : '';
+      if (!body) return '';
+      const doc = new DOMParser().parseFromString(body, 'text/html');
+      const img = doc.querySelector('img');
+      return img ? img.src : '';
     }
     const allPosts = (raw.posts || []).map(p => extractImg(p)).filter(Boolean);
     for (let i = allPosts.length - 1; i > 0; i--) {
