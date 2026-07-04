@@ -60,7 +60,7 @@
     left: 0;
     right: 0;
     padding: 20px 20px 14px;
-    color: #ff0;
+    color: #00f;
     font-weight: bold;
     z-index: 99;
     display: flex;
@@ -70,7 +70,7 @@
   #ssToggleBtn {
     background: none;
     border: 1px solid rgba(255,255,255,.2);
-    color: #ff0;
+    color: #00f;
     font-size: 16px;
     cursor: pointer;
     border-radius: 4px;
@@ -79,7 +79,7 @@
     margin-left: 6px;
   }
   #ssToggleBtn:hover {
-    border-color: #ff0;
+    border-color: #00f;
   }
   #ssToggleBtn.off {
     color: #444;
@@ -88,7 +88,7 @@
   #clearBtn {
     background: none;
     border: 1px solid rgba(255,255,255,.2);
-    color: #ff0;
+    color: #00f;
     font-size: 12px;
     cursor: pointer;
     border-radius: 4px;
@@ -96,7 +96,7 @@
     line-height: 1;
   }
   #clearBtn:hover {
-    border-color: #ff0;
+    border-color: #00f;
   }
   .ss-bg {
     position: fixed;
@@ -108,11 +108,6 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0;
-    transition: opacity 0.8s ease;
-  }
-  .ss-bg img.loaded {
-    opacity: 1;
   }
   .ss-overlay {
     position: fixed;
@@ -152,9 +147,6 @@
     background: #1a1a1a;
     opacity: 0;
     transition: opacity 0.6s ease;
-  }
-  .ss-img.loaded {
-    opacity: 1;
   }
   .ss-place {
     flex: 1;
@@ -352,7 +344,7 @@ let posts = [];
 let idx = 0;
 let paused = false;
 let ssTimer = null;
-const SS_DELAY = 8000;
+const SS_DELAY = 12000;
 let preloaded = new Set();
 
 function ssPreload(n) {
@@ -370,29 +362,15 @@ function ssPreload(n) {
   }
 }
 
-let ssTimerId = null;
 
 function ssShow() {
   if (!posts.length) return;
   const url = posts[idx];
-  if (ssImg.src !== url) {
-    if (ssTimerId) { clearTimeout(ssTimerId); ssTimerId = null; }
-    ssImg.classList.remove('loaded');
-    setTimeout(() => {
-      ssImg.src = url;
-      ssTimerId = setTimeout(() => {
-        ssImg.classList.add('loaded');
-      }, 500);
-    }, 300);
-  } else {
-    ssImg.classList.add('loaded');
-  }
+  if (ssImg.src === url) return;
+  ssImg.src = url;
   ssPreload(3);
 }
 
-ssImg.addEventListener('load', () => {
-  ssImg.classList.add('loaded');
-});
 
 function ssRefresh() {
   window.tumblr_api_read = null;
@@ -434,6 +412,7 @@ function ssNext() {
   if (!posts.length) return;
   idx = (idx + 1) % posts.length;
   if (idx === 0) {
+    if (ssTimer) { clearInterval(ssTimer); ssTimer = null; }
     ssRefresh();
     return;
   }
@@ -472,7 +451,6 @@ function ssDisable() {
   ssToggleBtn.className = 'off';
   if (ssTimer) { clearInterval(ssTimer); ssTimer = null; }
   paused = true;
-  ssImg.classList.remove('loaded');
 }
 
 ssToggleBtn.addEventListener('click', () => {
@@ -485,11 +463,9 @@ ssToggleBtn.addEventListener('click', () => {
   if (!ssVisible) {
     if (ssTimer) { clearInterval(ssTimer); ssTimer = null; }
     paused = true;
-    ssImg.classList.remove('loaded');
   } else {
     paused = false;
     ssTimer = setInterval(ssNext, SS_DELAY);
-    ssImg.classList.add('loaded');
   }
 });
 
