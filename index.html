@@ -34,9 +34,16 @@
     line-height: 1.5;
   }
   #output {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    padding: 20px;
+    z-index: 10;
     white-space: pre-wrap;
     word-wrap: break-word;
-    margin-top: 56px;
   }
   .st {
     color: #888;
@@ -45,23 +52,166 @@
     color: #666;
   }
   .ts {
-    color: #444;
+    color: #aaa;
   }
   .banner {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    padding: 20px 20px 12px;
-    background: #0a0a0a;
-    color: #0f0;
+    padding: 20px 20px 14px;
+    color: #ff0;
     font-weight: bold;
+    z-index: 99;
+  }
+  .ss-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background: #0a0a0a;
+  }
+  .ss-bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  }
+  .ss-bg img.loaded {
+    opacity: 1;
+  }
+  .ss-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    background: rgba(0, 0, 0, 0.65);
+  }
+  #flashLayer {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    background: transparent;
+    transition: background 0s;
+  }
+  .banner {
     z-index: 10;
+  }
+  #output {
+    z-index: 10;
+    text-shadow: 0 1px 4px rgba(0,0,0,.8), 0 0 12px rgba(0,0,0,.6);
+  }
+  .ss-view {
+    flex: 1;
+    overflow: hidden;
+    padding: 6px 8px 4px;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .ss-img {
+    flex: 1;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 3px;
+    min-height: 80px;
+    background: #1a1a1a;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .ss-img.loaded {
+    opacity: 1;
+  }
+  .ss-place {
+    flex: 1;
+    width: 100%;
+    min-height: 80px;
+    background: #1a1a1a;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    font-size: 11px;
+    text-align: center;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+  .ss-ctrl {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 8px 8px;
+    border-top: 1px solid #222;
+    position: relative;
+  }
+  .ss-resize {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 14px;
+    height: 14px;
+    cursor: nwse-resize;
+    z-index: 5;
+  }
+  .ss-resize::after {
+    content: '';
+    position: absolute;
+    left: 2px;
+    bottom: 2px;
+    width: 8px;
+    height: 8px;
+    border-left: 2px solid #444;
+    border-bottom: 2px solid #444;
+  }
+  .ss-resize:hover::after {
+    border-color: #0f0;
+  }
+  .ss-ctrl button {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #aaa;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 10px;
+    line-height: 1.6;
+  }
+  .ss-ctrl button:hover {
+    background: #2a2a2a;
+    color: #0f0;
+  }
+  .ss-ctrl .ss-num {
+    font-size: 11px;
+    color: #555;
+    min-width: 40px;
+    text-align: center;
+  }
+  @media (max-width: 640px) {
+    .ss-wrap {
+      width: 140px;
+      right: 6px;
+      top: 48px;
+      font-size: 11px;
+    }
+    .ss-ctrl button { font-size: 10px; padding: 1px 4px; }
   }
 </style>
 </head>
 <body>
 <div class="banner">Welcome to LoneGhost.Net</div>
+<div class="ss-bg" id="ssBg"><img id="ssImg" alt="" /></div>
+<div class="ss-overlay" id="ssOverlay"></div>
+<div id="flashLayer"></div>
+  <div class="ss-ctrl">
+    <button id="ssPrev">&#9664;</button>
+    <button id="ssPlay">&#9646;&#9646;</button>
+    <button id="ssNext">&#9654;</button>
+    <span class="ss-num" id="ssNum"></span>
+    <div class="ss-resize" id="ssResize"></div>
+  </div>
+</div>
 <div id="output"></div>
 
 <script>
@@ -71,7 +221,7 @@ function log(text) {
   const span = document.createElement('div');
   span.innerHTML = text;
   out.appendChild(span);
-  window.scrollTo(0, document.body.scrollHeight);
+  out.scrollTop = out.scrollHeight;
 }
 
 const colors = [
@@ -85,11 +235,9 @@ function randomColor() {
 
 function flash() {
   const c = randomColor();
-  document.body.style.background = c;
-  document.querySelector('.banner').style.background = c;
+  document.getElementById('flashLayer').style.background = c;
   setTimeout(() => {
-    document.body.style.background = '#0a0a0a';
-    document.querySelector('.banner').style.background = '#0a0a0a';
+    document.getElementById('flashLayer').style.background = 'transparent';
   }, 100);
 }
 
@@ -171,6 +319,111 @@ function loop() {
 }
 
 fetchDiction();
+
+// --- Slideshow ---
+const ssImg = document.getElementById('ssImg');
+let posts = [];
+let idx = 0;
+let paused = false;
+let ssTimer = null;
+const SS_DELAY = 8000;
+let preloaded = new Set();
+
+function ssPreload(n) {
+  for (let i = 1; i <= n; i++) {
+    const pi = (idx + i) % posts.length;
+    const url = posts[pi];
+    if (url && !preloaded.has(url)) {
+      preloaded.add(url);
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.href = url;
+      document.head.appendChild(link);
+    }
+  }
+}
+
+let ssTimerId = null;
+
+function ssShow() {
+  if (!posts.length) return;
+  const url = posts[idx];
+  if (ssImg.src !== url) {
+    if (ssTimerId) { clearTimeout(ssTimerId); ssTimerId = null; }
+    ssImg.classList.remove('loaded');
+    setTimeout(() => {
+      ssImg.src = url;
+      ssTimerId = setTimeout(() => {
+        ssImg.classList.add('loaded');
+      }, 500);
+    }, 300);
+  } else {
+    ssImg.classList.add('loaded');
+  }
+  ssPreload(3);
+}
+
+ssImg.addEventListener('load', () => {
+  ssImg.classList.add('loaded');
+});
+
+function ssNext() {
+  if (!posts.length) return;
+  idx = (idx + 1) % posts.length;
+  ssShow();
+}
+
+function ssPrev() {
+  if (!posts.length) return;
+  idx = (idx - 1 + posts.length) % posts.length;
+  ssShow();
+}
+
+function ssToggle() {
+  paused = !paused;
+  if (paused) {
+    if (ssTimer) { clearInterval(ssTimer); ssTimer = null; }
+  } else {
+    ssTimer = setInterval(ssNext, SS_DELAY);
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === ' ') { e.preventDefault(); ssToggle(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); ssPrev(); }
+  if (e.key === 'ArrowRight') { e.preventDefault(); ssNext(); }
+});
+
+(function() {
+  const s = document.createElement('script');
+  s.src = 'https://kredtidy.tumblr.com/api/read/json?num=30';
+  s.onerror = () => { ssImg.style.display = 'none'; };
+  document.head.appendChild(s);
+  const iv = setInterval(() => {
+    if (!window.tumblr_api_read) return;
+    clearInterval(iv);
+    const raw = window.tumblr_api_read;
+    function extractImg(post) {
+      if (post['photo-url-1280']) return post['photo-url-1280'];
+      if (post['photo-url-500']) return post['photo-url-500'];
+      const body = post['regular-body'] || post['photo-caption'] || '';
+      const m = body.match(/<img[^>]+src=["']([^"']+)["']/);
+      return m ? m[1] : '';
+    }
+    const allPosts = (raw.posts || []).map(p => extractImg(p)).filter(Boolean);
+    for (let i = allPosts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allPosts[i], allPosts[j]] = [allPosts[j], allPosts[i]];
+    }
+    posts = allPosts.slice(0, 30);
+    if (posts.length) {
+      ssShow();
+      ssTimer = setInterval(ssNext, SS_DELAY);
+    }
+  }, 300);
+  setTimeout(() => { clearInterval(iv); if (!posts.length) ssImg.style.display = 'none'; }, 10000);
+})();
 </script>
 </body>
 </html>
