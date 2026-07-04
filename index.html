@@ -392,11 +392,11 @@ function ssShow() {
 }
 
 
-function ssRefresh() {
+function ssRefresh(isRetry) {
   window.tumblr_api_read = null;
   const s = document.createElement('script');
   s.src = 'https://kredtidy.tumblr.com/api/read/json?num=50&t=' + Date.now();
-  s.onerror = () => { if (!paused) ssTimer = setInterval(ssNext, SS_DELAY); };
+  s.onerror = isRetry ? ssDisable : () => {};
   document.head.appendChild(s);
   const iv = setInterval(() => {
     if (!window.tumblr_api_read) return;
@@ -412,20 +412,29 @@ function ssRefresh() {
       return img ? img.src : '';
     }
     const fresh = (raw.posts || []).map(p => extractImg(p)).filter(Boolean);
-    const merged = [...fresh];
-    for (const url of posts) {
-      if (!merged.includes(url)) merged.push(url);
+    if (!fresh.length) {
+      if (isRetry) { ssDisable(); return; }
+      posts = posts.slice(0, 30);
+    } else {
+      const merged = [...fresh];
+      for (const url of posts) {
+        if (!merged.includes(url)) merged.push(url);
+      }
+      for (let i = merged.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [merged[i], merged[j]] = [merged[j], merged[i]];
+      }
+      posts = merged.slice(0, 30);
     }
-    for (let i = merged.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [merged[i], merged[j]] = [merged[j], merged[i]];
-    }
-    posts = merged.slice(0, 30);
     preloaded.clear();
     ssShow();
     if (!paused) ssTimer = setInterval(ssNext, SS_DELAY);
   }, 300);
-  setTimeout(() => { clearInterval(iv); if (!paused) ssTimer = setInterval(ssNext, SS_DELAY); }, 8000);
+  setTimeout(() => {
+    clearInterval(iv);
+    if (isRetry) { if (!posts.length) ssDisable(); return; }
+    if (!paused) ssTimer = setInterval(ssNext, SS_DELAY);
+  }, 8000);
 }
 
 function ssNext() {
@@ -474,8 +483,17 @@ function ssDisable() {
 }
 
 ssToggleBtn.addEventListener('click', () => {
-  if (ssDisabled) return;
   ssToggleBtn.blur();
+  if (ssDisabled) {
+    ssDisabled = false;
+    ssVisible = true;
+    ssBg.style.display = '';
+    ssOverlay.style.display = '';
+    ssToggleBtn.className = '';
+    paused = false;
+    ssRefresh(true);
+    return;
+  }
   ssVisible = !ssVisible;
   ssBg.style.display = ssVisible ? '' : 'none';
   ssOverlay.style.display = ssVisible ? '' : 'none';
@@ -509,11 +527,15 @@ document.addEventListener('keydown', e => {
 });
 
 (function() {
+  if (navigator.onLine === false) { ssDisable(); return; }
   const s = document.createElement('script');
   s.src = 'https://kredtidy.tumblr.com/api/read/json?num=50';
   s.onerror = ssDisable;
   document.head.appendChild(s);
+  let tries = 0;
   const iv = setInterval(() => {
+    tries++;
+    if (tries > 10) { clearInterval(iv); ssDisable(); return; }
     if (!window.tumblr_api_read) return;
     clearInterval(iv);
     const raw = window.tumblr_api_read;
@@ -539,8 +561,9 @@ document.addEventListener('keydown', e => {
       ssDisable();
     }
   }, 300);
-  setTimeout(() => { clearInterval(iv); if (!posts.length) ssDisable(); }, 10000);
 })();
+
+window.addEventListener('offline', () => ssDisable());
 </script>
 </body>
 </html>
