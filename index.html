@@ -429,8 +429,21 @@ const ssToggleBtn = document.getElementById('ssToggleBtn');
 const ssBg = document.getElementById('ssBg');
 const ssOverlay = document.getElementById('ssOverlay');
 let ssVisible = true;
+let ssDisabled = false;
+
+function ssDisable() {
+  ssDisabled = true;
+  ssVisible = false;
+  ssBg.style.display = 'none';
+  ssOverlay.style.display = 'none';
+  ssToggleBtn.className = 'off';
+  if (ssTimer) { clearInterval(ssTimer); ssTimer = null; }
+  paused = true;
+  ssImg.classList.remove('loaded');
+}
 
 ssToggleBtn.addEventListener('click', () => {
+  if (ssDisabled) return;
   ssToggleBtn.blur();
   ssVisible = !ssVisible;
   ssBg.style.display = ssVisible ? '' : 'none';
@@ -463,7 +476,7 @@ document.addEventListener('keydown', e => {
 (function() {
   const s = document.createElement('script');
   s.src = 'https://kredtidy.tumblr.com/api/read/json?num=50';
-  s.onerror = () => { ssImg.style.display = 'none'; };
+  s.onerror = ssDisable;
   document.head.appendChild(s);
   const iv = setInterval(() => {
     if (!window.tumblr_api_read) return;
@@ -487,9 +500,11 @@ document.addEventListener('keydown', e => {
     if (posts.length) {
       ssShow();
       ssTimer = setInterval(ssNext, SS_DELAY);
+    } else {
+      ssDisable();
     }
   }, 300);
-  setTimeout(() => { clearInterval(iv); if (!posts.length) ssImg.style.display = 'none'; }, 10000);
+  setTimeout(() => { clearInterval(iv); if (!posts.length) ssDisable(); }, 10000);
 })();
 </script>
 </body>
