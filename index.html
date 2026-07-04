@@ -76,6 +76,7 @@
     border-radius: 4px;
     padding: 2px 8px;
     line-height: 1;
+    margin-left: 6px;
   }
   #ssToggleBtn:hover {
     border-color: #ff0;
@@ -83,6 +84,19 @@
   #ssToggleBtn.off {
     color: #444;
     border-color: #333;
+  }
+  #clearBtn {
+    background: none;
+    border: 1px solid rgba(255,255,255,.2);
+    color: #ff0;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px 8px;
+    line-height: 1;
+  }
+  #clearBtn:hover {
+    border-color: #ff0;
   }
   .ss-bg {
     position: fixed;
@@ -220,7 +234,7 @@
 </style>
 </head>
 <body>
-<div class="banner">Welcome to LoneGhost.Net <button id="ssToggleBtn" title="Toggle slideshow">&#x25C9; SS</button></div>
+<div class="banner">Welcome to LoneGhost.Net <span style="flex:1"></span><button id="clearBtn" title="Clear output" tabindex="-1">CLR</button><button id="ssToggleBtn" title="Toggle slideshow" tabindex="-1">&#x25C9; SS</button></div>
 <div class="ss-bg" id="ssBg"><img id="ssImg" alt="" /></div>
 <div class="ss-overlay" id="ssOverlay"></div>
 <div id="flashLayer"></div>
@@ -417,6 +431,7 @@ const ssOverlay = document.getElementById('ssOverlay');
 let ssVisible = true;
 
 ssToggleBtn.addEventListener('click', () => {
+  ssToggleBtn.blur();
   ssVisible = !ssVisible;
   ssBg.style.display = ssVisible ? '' : 'none';
   ssOverlay.style.display = ssVisible ? '' : 'none';
@@ -430,6 +445,12 @@ ssToggleBtn.addEventListener('click', () => {
     ssTimer = setInterval(ssNext, SS_DELAY);
     ssImg.classList.add('loaded');
   }
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  document.getElementById('clearBtn').blur();
+  out.innerHTML = '';
+  out.scrollTop = 0;
 });
 
 document.addEventListener('keydown', e => {
