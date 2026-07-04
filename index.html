@@ -394,15 +394,48 @@ ssImg.addEventListener('load', () => {
   ssImg.classList.add('loaded');
 });
 
+function ssRefresh() {
+  window.tumblr_api_read = null;
+  const s = document.createElement('script');
+  s.src = 'https://kredtidy.tumblr.com/api/read/json?num=50&t=' + Date.now();
+  s.onerror = () => { if (!paused) ssTimer = setInterval(ssNext, SS_DELAY); };
+  document.head.appendChild(s);
+  const iv = setInterval(() => {
+    if (!window.tumblr_api_read) return;
+    clearInterval(iv);
+    const raw = window.tumblr_api_read;
+    function extractImg(post) {
+      if (post['photo-url-1280']) return post['photo-url-1280'];
+      if (post['photo-url-500']) return post['photo-url-500'];
+      const body = post['regular-body'] || post['photo-caption'] || '';
+      if (!body) return '';
+      const doc = new DOMParser().parseFromString(body, 'text/html');
+      const img = doc.querySelector('img');
+      return img ? img.src : '';
+    }
+    const fresh = (raw.posts || []).map(p => extractImg(p)).filter(Boolean);
+    const merged = [...fresh];
+    for (const url of posts) {
+      if (!merged.includes(url)) merged.push(url);
+    }
+    for (let i = merged.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [merged[i], merged[j]] = [merged[j], merged[i]];
+    }
+    posts = merged.slice(0, 30);
+    preloaded.clear();
+    ssShow();
+    if (!paused) ssTimer = setInterval(ssNext, SS_DELAY);
+  }, 300);
+  setTimeout(() => { clearInterval(iv); if (!paused) ssTimer = setInterval(ssNext, SS_DELAY); }, 8000);
+}
+
 function ssNext() {
   if (!posts.length) return;
   idx = (idx + 1) % posts.length;
   if (idx === 0) {
-    preloaded.clear();
-    for (let i = posts.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [posts[i], posts[j]] = [posts[j], posts[i]];
-    }
+    ssRefresh();
+    return;
   }
   if (!paused) { if (ssTimer) clearInterval(ssTimer); ssTimer = setInterval(ssNext, SS_DELAY); }
   ssShow();
