@@ -99,6 +99,24 @@
   #clearBtn:hover {
     border-color: #0ff;
   }
+  #nanoBtn {
+    position: fixed;
+    bottom: 12px;
+    right: 12px;
+    background: none;
+    border: 1px solid rgba(255,255,255,.15);
+    color: #555;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px 12px;
+    line-height: 1.4;
+    z-index: 15;
+  }
+  #nanoBtn:hover {
+    color: #0ff;
+    border-color: #0ff;
+  }
   .ss-bg {
     position: fixed;
     inset: 0;
@@ -232,6 +250,7 @@
 <div class="ss-overlay" id="ssOverlay"></div>
 <div id="flashLayer"></div>
 <div id="output"></div>
+<button id="nanoBtn" tabindex="-1">NANO</button>
 
 <script>
 const out = document.getElementById('output');
@@ -476,7 +495,13 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   out.scrollTop = 0;
 });
 
+document.getElementById('nanoBtn').addEventListener('click', () => {
+  document.getElementById('nanoBtn').blur();
+  if (diction.length) generateResult();
+});
+
 document.addEventListener('keydown', e => {
+  if (e.key === 'n' || e.key === 'N') { if (diction.length) generateResult(); flash(); }
   if (!ssVisible) return;
   if (e.key === ' ') { e.preventDefault(); ssToggle(); }
   if (e.key === 'ArrowLeft') { e.preventDefault(); ssPrev(); }
